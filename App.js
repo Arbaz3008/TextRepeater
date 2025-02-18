@@ -3,27 +3,30 @@ import {
   View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, 
   KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard 
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import { Clipboard } from "react-native";
 
 export default function TextRepeater() {
   const [text, setText] = useState("");
   const [repeatCount, setRepeatCount] = useState("1");
   const [output, setOutput] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState("normal");
+  const [selectedColor, setSelectedColor] = useState("black");
   const intervalRef = useRef(null);
 
   const handleTextChange = (input) => {
     setText(input);
     if (input.trim() === "") {
-      setOutput([]); // Clear output when input is cleared
-      stopRepeating(); // Stop if it's running
+      setOutput([]);
+      stopRepeating();
     }
   };
 
   const startRepeating = () => {
-    if (!text || isNaN(repeatCount) || parseInt(repeatCount) <= 0) return;
+    if (!text || isNaN(parseInt(repeatCount)) || parseInt(repeatCount) <= 0) return;
 
     stopRepeating();
-
     setOutput([]);
     setIsRunning(true);
 
@@ -35,7 +38,7 @@ export default function TextRepeater() {
       }
       setOutput((prev) => [...prev, text]);
       count++;
-    }, );
+    }, 500);
   };
 
   const stopRepeating = () => {
@@ -46,6 +49,13 @@ export default function TextRepeater() {
     setIsRunning(false);
   };
 
+  const copyToClipboard = () => {
+    if (output.length > 0) {
+      Clipboard.setString(output.join("\n"));
+      alert("Copied to Clipboard!");
+    }
+  };
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"} 
@@ -54,6 +64,7 @@ export default function TextRepeater() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.inner}>
           <Text style={styles.title}>Text Repeater</Text>
+
           <View style={styles.inputRow}>
             <TextInput
               placeholder="Enter text"
@@ -72,26 +83,67 @@ export default function TextRepeater() {
               style={styles.countInput}
             />
           </View>
+
+          <Picker
+            selectedValue={selectedStyle}
+            onValueChange={(itemValue) => setSelectedStyle(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Normal" value="normal" />
+            <Picker.Item label="Bold" value="bold" />
+            <Picker.Item label="Italic" value="italic" />
+            <Picker.Item label="Underline" value="underline" />
+          </Picker>
+
+          <Picker
+            selectedValue={selectedColor}
+            onValueChange={(itemValue) => setSelectedColor(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Black" value="black" />
+            <Picker.Item label="Red" value="red" />
+            <Picker.Item label="Blue" value="blue" />
+            <Picker.Item label="Green" value="green" />
+          </Picker>
+
           <TouchableOpacity
             onPress={isRunning ? stopRepeating : startRepeating}
             style={[styles.button, { backgroundColor: isRunning ? "red" : "purple" }]}
           >
             <Text style={styles.buttonText}>{isRunning ? "Stop" : "Start"}</Text>
           </TouchableOpacity>
+
           <View style={styles.outputContainer}>
             <FlatList
               data={output}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => <Text style={styles.outputText}>{item}</Text>}
+              renderItem={({ item }) => (
+                <Text 
+                  style={{ 
+                    fontSize: 16, 
+                    fontWeight: selectedStyle === "bold" ? "bold" : "normal", 
+                    fontStyle: selectedStyle === "italic" ? "italic" : "normal", 
+                    textDecorationLine: selectedStyle === "underline" ? "underline" : "none", 
+                    color: selectedColor, 
+                    marginBottom: 5 
+                  }}
+                >
+                  {item}
+                </Text>
+              )}
             />
           </View>
+
+          <TouchableOpacity onPress={copyToClipboard} style={[styles.button, { backgroundColor: "purple" }]}>
+            <Text style={styles.buttonText}>Copy to Clipboard</Text>
+          </TouchableOpacity>
+          
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -136,7 +188,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   buttonText: {
     color: "white",
@@ -150,8 +202,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#e6e7e8",
     height: 150,
   },
-  outputText: {
-    fontSize: 16,
-    marginBottom: 5,
+  picker: {
+    height: 50,
+    width: "100%",
+    marginBottom: 10,
   },
 });
