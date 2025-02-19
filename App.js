@@ -13,6 +13,7 @@ export default function TextRepeater() {
   const [isRunning, setIsRunning] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("normal");
   const [selectedColor, setSelectedColor] = useState("black");
+  const [currentCount, setCurrentCount] = useState(0);
   const intervalRef = useRef(null);
 
   const handleTextChange = (input) => {
@@ -29,6 +30,7 @@ export default function TextRepeater() {
     stopRepeating();
     setOutput([]);
     setIsRunning(true);
+    setCurrentCount(0);
 
     let count = 0;
     intervalRef.current = setInterval(() => {
@@ -37,6 +39,7 @@ export default function TextRepeater() {
         return;
       }
       setOutput((prev) => [...prev, text]);
+      setCurrentCount(count + 1);
       count++;
     }, 500);
   };
@@ -114,6 +117,7 @@ export default function TextRepeater() {
           </TouchableOpacity>
 
           <View style={styles.outputContainer}>
+          <Text style={styles.counterText}>Counting: {currentCount} / {repeatCount}</Text>
             <FlatList
               data={output}
               keyExtractor={(item, index) => index.toString()}
@@ -207,4 +211,11 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 10,
   },
+  counterText: {
+    textAlign: "right",
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "gray",
+    //marginBottom: 5,
+  }
 });
