@@ -216,6 +216,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: "gray",
-    //marginBottom: 5,
   }
 });
